@@ -37,7 +37,7 @@ const CustomTooltip = ({ active, payload, label }: any) => {
   )
 }
 
-export default function PriceChart({ models }: { models: LLMModel[] }) {
+export default function PriceChart({ models, isDark = true }: { models: LLMModel[]; isDark?: boolean }) {
   const data = [...models]
     .sort((a, b) => a.inputPricePer1M - b.inputPricePer1M)
     .map(m => ({
@@ -51,20 +51,20 @@ export default function PriceChart({ models }: { models: LLMModel[] }) {
     <div className="bg-gray-900 rounded-xl border border-gray-800 p-6">
       <h2 className="text-lg font-semibold text-white mb-1">Price Comparison</h2>
       <p className="text-xs text-gray-500 mb-6">USD per 1M tokens · sorted cheapest first</p>
-      <ResponsiveContainer width="100%" height={420}>
+      <ResponsiveContainer width="100%" height={Math.max(420, data.length * 50)}>
         <BarChart data={data} layout="vertical" margin={{ left: 16, right: 24, top: 0, bottom: 0 }}>
           <XAxis
             type="number"
             tickFormatter={v => `$${v}`}
-            tick={{ fill: '#6b7280', fontSize: 11 }}
+            tick={{ fill: isDark ? '#6b7280' : '#4b5563', fontSize: 11 }}
             axisLine={false}
             tickLine={false}
           />
           <YAxis
             type="category"
             dataKey="name"
-            width={90}
-            tick={{ fill: '#d1d5db', fontSize: 12 }}
+            width={110}
+            tick={{ fill: isDark ? '#d1d5db' : '#111827', fontSize: 12 }}
             axisLine={false}
             tickLine={false}
           />
@@ -72,12 +72,12 @@ export default function PriceChart({ models }: { models: LLMModel[] }) {
           <Legend
             wrapperStyle={{ color: '#9ca3af', fontSize: 12, paddingTop: 16 }}
           />
-          <Bar dataKey="Input" radius={[0, 4, 4, 0]} maxBarSize={12} fill="#38bdf8">
+          <Bar dataKey="Input" radius={[0, 4, 4, 0]} maxBarSize={18} fill="#38bdf8">
             {data.map(d => (
               <Cell key={d.name} fill={PROVIDER_COLORS[d.provider] ?? '#6b7280'} opacity={0.9} />
             ))}
           </Bar>
-          <Bar dataKey="Output" radius={[0, 4, 4, 0]} maxBarSize={12} fill="#7c3aed" opacity={0.7} />
+          <Bar dataKey="Output" radius={[0, 4, 4, 0]} maxBarSize={18} fill="#7c3aed" opacity={0.7} />
         </BarChart>
       </ResponsiveContainer>
     </div>

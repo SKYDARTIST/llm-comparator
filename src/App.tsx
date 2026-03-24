@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { Moon, Sun } from 'lucide-react'
 import { useModels } from './hooks/useModels'
 import ComparisonTable from './components/ComparisonTable'
 import PriceChart from './components/PriceChart'
@@ -16,6 +17,13 @@ const TABS = [
 export default function App() {
   const { models, loading, error, source } = useModels()
   const [activeTab, setActiveTab] = useState('compare')
+  const [isDark, setIsDark] = useState(true)
+
+  function toggleTheme() {
+    const next = !isDark
+    setIsDark(next)
+    document.documentElement.classList.toggle('light-theme', !next)
+  }
 
   return (
     <div className="min-h-screen bg-gray-950 text-gray-100">
@@ -34,6 +42,13 @@ export default function App() {
               </span>
             )}
             {error && <span className="text-xs text-yellow-500">{error}</span>}
+            <button
+              onClick={toggleTheme}
+              className="p-2 rounded-lg bg-gray-800 border border-gray-700 text-gray-400 hover:text-white transition-colors"
+              title={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
+            >
+              {isDark ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+            </button>
           </div>
         </div>
 
@@ -76,7 +91,7 @@ export default function App() {
         {/* Tab content */}
         <div className="bg-gray-900 border border-gray-800 rounded-xl p-6">
           {activeTab === 'compare' && <ComparisonTable models={models} />}
-          {activeTab === 'chart' && <PriceChart models={models} />}
+          {activeTab === 'chart' && <PriceChart models={models} isDark={isDark} />}
           {activeTab === 'calculator' && <CostCalculator models={models} />}
           {activeTab === 'recommender' && <UseCaseRecommender models={models} />}
         </div>
