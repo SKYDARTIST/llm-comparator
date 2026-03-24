@@ -5,6 +5,7 @@ import ComparisonTable from './components/ComparisonTable'
 import PriceChart from './components/PriceChart'
 import CostCalculator from './components/CostCalculator'
 import UseCaseRecommender from './components/UseCaseRecommender'
+import SideBySide from './components/SideBySide'
 import './index.css'
 
 const TABS = [
@@ -12,6 +13,7 @@ const TABS = [
   { id: 'chart', label: 'Price Chart' },
   { id: 'calculator', label: 'Cost Calculator' },
   { id: 'recommender', label: 'Use Case Recommender' },
+  { id: 'sidebyside', label: 'Side-by-Side' },
 ]
 
 export default function App() {
@@ -94,6 +96,7 @@ export default function App() {
           {activeTab === 'chart' && <PriceChart models={models} isDark={isDark} />}
           {activeTab === 'calculator' && <CostCalculator models={models} />}
           {activeTab === 'recommender' && <UseCaseRecommender models={models} />}
+          {activeTab === 'sidebyside' && <SideBySide models={models} />}
         </div>
 
         {/* Footer */}
