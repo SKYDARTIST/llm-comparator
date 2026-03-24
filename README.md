@@ -2,13 +2,19 @@
 
 A production-quality web app for comparing Large Language Models by pricing, context window, capabilities, and monthly cost.
 
+**Live:** https://llm-comparator.vercel.app
+
 ---
 
 ## Features
 
-- **Comparison Table** — Sort and filter 16+ models by input price, output price, context window, or provider
+- **Comparison Table** — Sort and filter 20 models by input price, output price, context window, or provider
 - **Price Chart** — Horizontal bar chart comparing input vs output costs, sorted cheapest first
 - **Cost Calculator** — Sliders for monthly token volume → ranked cost estimate per model
+- **Use Case Recommender** — Describe your use case, get the best model match with reasoning
+- **Side-by-Side Comparison** — Compare GPT-4o, Gemini 2.5 Pro, and Claude Opus 4.6 head-to-head with real benchmark data
+- **Benchmark Visualization** — Radar chart + table with real scores (MMLU, HumanEval, GPQA Diamond, SWE-bench, MATH, HLE, ARC-AGI 2, Terminal-Bench)
+- **Dark / Light Mode** — Toggle between themes
 - **Live pricing badge** — Shows whether data is from OpenRouter live API or static fallback
 
 ---
@@ -21,8 +27,8 @@ GET https://openrouter.ai/api/v1/models
 ```
 No authentication required. Returns model metadata including `pricing.prompt` and `pricing.completion` in USD per token. Multiplied by 1,000,000 for per-1M-token display. Fetched on page load, cached in React state.
 
-### Secondary: Static fallback (`src/data/staticModels.ts`)
-Hardcoded pricing for models not available on OpenRouter or to ensure coverage of key providers. Sources:
+### Secondary: Static metadata (`src/data/staticModels.ts`)
+Release dates sourced from OpenRouter `created` Unix timestamps. Capabilities and use case data manually curated per model. Static data last verified: March 2026.
 
 | Provider | Source |
 |----------|--------|
@@ -35,10 +41,17 @@ Hardcoded pricing for models not available on OpenRouter or to ensure coverage o
 | DeepSeek | platform.deepseek.com/api-docs/pricing |
 | Cohere | cohere.com/pricing |
 
-Static data last verified: March 2026.
+### Benchmark Data (`src/data/benchmarks.ts`)
+Real scores only — no estimates or interpolated values. Missing data shown as `—`.
+
+| Model | Source |
+|-------|--------|
+| GPT-4o | anotherwrapper.com/llm-pricing (March 2026) |
+| Gemini 2.5 Pro | anotherwrapper.com/llm-pricing (March 2026) |
+| Claude Opus 4.6 | anthropic.com/news/claude-opus-4-6 (March 2026) |
 
 ### Merge Strategy
-OpenRouter live data takes priority. Static models fill in gaps for any model ID not returned by OpenRouter. The UI shows a "Live" or "Cached" badge.
+OpenRouter live data takes priority. Static metadata (release dates, capabilities) injected from `modelMetadata` lookup. Exactly 20 flagship models tracked via `PRIORITY_IDS` whitelist. The UI shows a "Live" or "Cached" badge.
 
 > LLM providers do not offer official pricing APIs. OpenRouter + documented static fallback is the most reliable approach available — combining real-time data where possible with authoritative sources where not.
 
@@ -61,15 +74,18 @@ OpenRouter live data takes priority. Static models fill in gaps for any model ID
 ```
 src/
 ├── data/
-│   └── staticModels.ts     # LLMModel interface + 16 hardcoded models
+│   ├── staticModels.ts     # LLMModel interface + modelMetadata (20 models)
+│   └── benchmarks.ts       # Real benchmark scores for 3 models
 ├── hooks/
-│   └── useModels.ts        # Fetches OpenRouter, merges with static
+│   └── useModels.ts        # Fetches OpenRouter, filters by PRIORITY_IDS, injects metadata
 ├── components/
 │   ├── ComparisonTable.tsx # Sortable/filterable table
 │   ├── PriceChart.tsx      # Recharts horizontal bar chart
-│   └── CostCalculator.tsx  # Token sliders → monthly cost ranking
-├── App.tsx                 # Layout, stats bar, section composition
-└── index.css               # Tailwind import + base styles
+│   ├── CostCalculator.tsx  # Token sliders → monthly cost ranking
+│   ├── UseCaseRecommender.tsx # Keyword matching → model recommendations
+│   └── SideBySide.tsx      # Head-to-head comparison + radar chart
+├── App.tsx                 # Layout, tab navigation, stats bar, dark mode toggle
+└── index.css               # Tailwind import + light theme overrides
 ```
 
 ---
@@ -77,7 +93,7 @@ src/
 ## Running Locally
 
 ```bash
-git clone https://github.com/AakashBuild/llm-comparator
+git clone https://github.com/SKYDARTIST/llm-comparator
 cd llm-comparator
 npm install
 npm run dev
@@ -86,18 +102,17 @@ npm run dev
 
 ---
 
-## Models Covered (16)
+## Models Covered (20)
 
 | Model | Provider |
 |-------|----------|
-| GPT-4o, GPT-4o Mini, o3-mini | OpenAI |
-| Claude 3.5 Sonnet, Claude 3 Opus, Claude 3 Haiku | Anthropic |
-| Gemini 1.5 Pro, Gemini 1.5 Flash | Google |
-| Grok 2 | xAI |
-| Llama 3.1 405B, Llama 3.1 70B | Meta |
-| Mistral Large, Mistral 7B | Mistral |
+| GPT-5, GPT-4o, GPT-4o Mini, o4-mini, o3 | OpenAI |
+| Claude Opus 4.6, Claude Sonnet 4.6, Claude Haiku 4.5 | Anthropic |
+| Gemini 2.5 Pro, Gemini 2.5 Flash, Gemini 2.0 Flash | Google |
+| Grok 4, Grok 3 Mini | xAI |
+| Llama 4 Maverick, Llama 4 Scout, Llama 3.3 70B | Meta |
+| Mistral Large, Mistral Small | Mistral |
 | DeepSeek V3, DeepSeek R1 | DeepSeek |
-| Command R+ | Cohere |
 
 ---
 
