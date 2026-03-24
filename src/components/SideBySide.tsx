@@ -21,8 +21,12 @@ function fmtCtx(n: number) {
   return `${n / 1_000}K`
 }
 
+const BENCHMARK_MODEL_IDS = ['openai/gpt-4o', 'google/gemini-2.5-pro', 'anthropic/claude-opus-4.6']
+
 export default function SideBySide({ models }: { models: LLMModel[] }) {
-  const [selected, setSelected] = useState<string[]>([])
+  const [selected, setSelected] = useState<string[]>(BENCHMARK_MODEL_IDS)
+
+  const benchmarkModels = models.filter(m => BENCHMARK_MODEL_IDS.includes(m.id))
 
   const toggle = (id: string) => {
     setSelected(prev =>
@@ -34,7 +38,7 @@ export default function SideBySide({ models }: { models: LLMModel[] }) {
     )
   }
 
-  const chosen = selected.map(id => models.find(m => m.id === id)).filter(Boolean) as LLMModel[]
+  const chosen = selected.map(id => benchmarkModels.find(m => m.id === id)).filter(Boolean) as LLMModel[]
 
   // Radar chart data — only benchmarks where at least one model has data
   const radarData = ALL_BENCHMARKS
@@ -58,7 +62,7 @@ export default function SideBySide({ models }: { models: LLMModel[] }) {
 
       {/* Model picker */}
       <div className="flex flex-wrap gap-2">
-        {models.map(m => (
+        {benchmarkModels.map(m => (
           <button
             key={m.id}
             onClick={() => toggle(m.id)}
