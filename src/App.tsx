@@ -1,11 +1,21 @@
+import { useState } from 'react'
 import { useModels } from './hooks/useModels'
 import ComparisonTable from './components/ComparisonTable'
 import PriceChart from './components/PriceChart'
 import CostCalculator from './components/CostCalculator'
+import UseCaseRecommender from './components/UseCaseRecommender'
 import './index.css'
+
+const TABS = [
+  { id: 'compare', label: 'Compare' },
+  { id: 'chart', label: 'Price Chart' },
+  { id: 'calculator', label: 'Cost Calculator' },
+  { id: 'recommender', label: 'Use Case Recommender' },
+]
 
 export default function App() {
   const { models, loading, error, source } = useModels()
+  const [activeTab, setActiveTab] = useState('compare')
 
   return (
     <div className="min-h-screen bg-gray-950 text-gray-100">
@@ -17,9 +27,7 @@ export default function App() {
             <p className="text-xs text-gray-500 mt-0.5">Real-time pricing · {models.length} models</p>
           </div>
           <div className="flex items-center gap-2">
-            {loading && (
-              <span className="text-xs text-gray-500 animate-pulse">Fetching live prices...</span>
-            )}
+            {loading && <span className="text-xs text-gray-500 animate-pulse">Fetching live prices...</span>}
             {!loading && (
               <span className={`text-xs px-2 py-1 rounded-full ${source === 'live' ? 'bg-emerald-900/50 text-emerald-400' : 'bg-gray-800 text-gray-400'}`}>
                 {source === 'live' ? '● Live' : '● Cached'}
@@ -28,26 +36,30 @@ export default function App() {
             {error && <span className="text-xs text-yellow-500">{error}</span>}
           </div>
         </div>
+
+        {/* Scrollable tab bar */}
+        <div className="max-w-7xl mx-auto px-4 sm:px-6">
+          <div className="flex overflow-x-auto scrollbar-hide border-t border-gray-800 -mb-px gap-0">
+            {TABS.map(tab => (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={`shrink-0 px-5 py-3 text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${
+                  activeTab === tab.id
+                    ? 'border-blue-500 text-blue-400'
+                    : 'border-transparent text-gray-500 hover:text-gray-300'
+                }`}
+              >
+                {tab.label}
+              </button>
+            ))}
+          </div>
+        </div>
       </header>
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 py-8 space-y-10">
-        {/* Hero */}
-        <div className="text-center space-y-3 py-4">
-          <h2 className="text-3xl sm:text-4xl font-bold text-white">
-            Find the right LLM for your use case
-          </h2>
-          <p className="text-gray-400 max-w-xl mx-auto text-sm sm:text-base">
-            Compare pricing, context windows, and capabilities across the top AI models.
-            Pricing sourced live from{' '}
-            <a href="https://openrouter.ai" target="_blank" rel="noopener noreferrer" className="text-blue-400 hover:underline">
-              OpenRouter
-            </a>{' '}
-            + official provider pages.
-          </p>
-        </div>
-
-        {/* Stats bar */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
+        {/* Stats bar — always visible */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-8">
           {[
             { label: 'Models tracked', value: models.length },
             { label: 'Providers', value: new Set(models.map(m => m.provider)).size },
@@ -61,34 +73,20 @@ export default function App() {
           ))}
         </div>
 
-        {/* Comparison Table */}
-        <section>
-          <h3 className="text-base font-semibold text-gray-300 mb-4">All Models</h3>
-          <ComparisonTable models={models} />
-        </section>
-
-        {/* Chart */}
-        <section>
-          <PriceChart models={models} />
-        </section>
-
-        {/* Cost Calculator */}
-        <section>
-          <CostCalculator models={models} />
-        </section>
+        {/* Tab content */}
+        <div className="bg-gray-900 border border-gray-800 rounded-xl p-6">
+          {activeTab === 'compare' && <ComparisonTable models={models} />}
+          {activeTab === 'chart' && <PriceChart models={models} />}
+          {activeTab === 'calculator' && <CostCalculator models={models} />}
+          {activeTab === 'recommender' && <UseCaseRecommender models={models} />}
+        </div>
 
         {/* Footer */}
-        <footer className="border-t border-gray-800 pt-6 pb-4 text-center space-y-1">
+        <footer className="border-t border-gray-800 mt-8 pt-6 pb-4 text-center space-y-1">
           <p className="text-xs text-gray-600">
-            Pricing data:{' '}
-            <a href="https://openrouter.ai/api/v1/models" className="text-gray-500 hover:text-gray-400">
-              OpenRouter API
-            </a>{' '}
-            (live) + official provider pages (static fallback).
+            Pricing: <a href="https://openrouter.ai/api/v1/models" className="text-gray-500 hover:text-gray-400">OpenRouter API</a> (live) + official provider pages (static fallback).
           </p>
-          <p className="text-xs text-gray-700">
-            Prices may vary. Always verify on official provider pages before production use.
-          </p>
+          <p className="text-xs text-gray-700">Always verify on official provider pages before production use.</p>
         </footer>
       </main>
     </div>
