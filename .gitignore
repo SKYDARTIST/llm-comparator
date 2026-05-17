@@ -23,3 +23,10 @@ dist-ssr
 *.sln
 *.sw?
 .vercel
+
+# AI tooling
+CLAUDE.md
+AGENTS.md
+.claude/
+graphify-out/
+.codex-pet-runs/
