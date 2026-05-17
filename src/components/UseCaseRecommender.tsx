@@ -2,6 +2,7 @@ import { useState, useMemo } from 'react'
 import { Search, Zap, DollarSign, Brain } from 'lucide-react'
 import type { LLMModel } from '../data/staticModels'
 import { modelMetadata } from '../data/staticModels'
+import { recommendModels } from '../lib/recommender'
 
 const QUICK_PICKS = [
   { label: 'Coding', query: 'coding' },
@@ -13,21 +14,6 @@ const QUICK_PICKS = [
   { label: 'RAG / Search', query: 'RAG search retrieval' },
   { label: 'Current Events', query: 'realtime news' },
 ]
-
-function scoreModel(model: LLMModel, query: string): number {
-  const meta = modelMetadata[model.id]
-  if (!meta?.useCases?.length) return 0
-  const words = query.toLowerCase().split(/\s+/).filter(Boolean)
-  let score = 0
-  for (const word of words) {
-    for (const uc of meta.useCases) {
-      if (uc.toLowerCase().includes(word) || word.includes(uc.toLowerCase())) score += 2
-    }
-    if (model.name.toLowerCase().includes(word)) score += 1
-    if (model.provider.toLowerCase().includes(word)) score += 1
-  }
-  return score
-}
 
 const PROVIDER_COLORS: Record<string, string> = {
   OpenAI: 'border-emerald-700 bg-emerald-950/30',
@@ -53,15 +39,7 @@ export default function UseCaseRecommender({ models }: { models: LLMModel[] }) {
   }, [models])
 
   const results = useMemo(() => {
-    if (!query.trim()) return []
-    return [...models]
-      .map(m => ({ model: m, score: scoreModel(m, query) }))
-      .filter(r => r.score > 0)
-      .sort((a, b) => {
-        if (b.score !== a.score) return b.score - a.score
-        return a.model.inputPricePer1M - b.model.inputPricePer1M
-      })
-      .slice(0, 3)
+    return recommendModels(models, query)
   }, [models, query])
 
   return (

@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react'
 import type { LLMModel } from '../data/staticModels'
+import { rankMonthlyCosts } from '../lib/pricing'
 
 function fmtCost(n: number) {
   if (n < 0.01) return '<$0.01'
@@ -37,14 +38,7 @@ export default function CostCalculator({ models }: { models: LLMModel[] }) {
   const [outputTokens, setOutputTokens] = useState(500_000)
 
   const results = useMemo(() => {
-    return [...models]
-      .map(m => ({
-        id: m.id,
-        name: m.name,
-        provider: m.provider,
-        cost: (m.inputPricePer1M * inputTokens + m.outputPricePer1M * outputTokens) / 1_000_000,
-      }))
-      .sort((a, b) => a.cost - b.cost)
+    return rankMonthlyCosts(models, inputTokens, outputTokens)
   }, [models, inputTokens, outputTokens])
 
   const cheapest = results[0]?.cost ?? 0

@@ -1,6 +1,6 @@
 # LLM Comparator
 
-A production-quality web app for comparing Large Language Models by pricing, context window, capabilities, and monthly cost.
+A portfolio-grade web app for comparing Large Language Models by pricing, context window, capabilities, benchmarks, and estimated monthly cost.
 
 **Live:** https://llm-comparator.vercel.app
 
@@ -16,6 +16,8 @@ A production-quality web app for comparing Large Language Models by pricing, con
 - **Benchmark Visualization** — Radar chart + table with real scores (MMLU, HumanEval, GPQA Diamond, SWE-bench, MATH, HLE, ARC-AGI 2, Terminal-Bench)
 - **Dark / Light Mode** — Toggle between themes
 - **Live pricing badge** — Shows whether data is from OpenRouter live API or static fallback
+- **No paid AI calls** — Uses public metadata and local heuristics, not OpenAI/Gemini generation APIs
+- **Portfolio docs/specs** — Architecture, data methodology, security notes, and feature specs included
 
 ---
 
@@ -26,6 +28,8 @@ A production-quality web app for comparing Large Language Models by pricing, con
 GET https://openrouter.ai/api/v1/models
 ```
 No authentication required. Returns model metadata including `pricing.prompt` and `pricing.completion` in USD per token. Multiplied by 1,000,000 for per-1M-token display. Fetched on page load, cached in React state.
+
+This project does **not** call OpenAI, Anthropic, Gemini, or OpenRouter generation endpoints. That keeps the demo free to run and avoids exposing API keys in a client-side portfolio project.
 
 ### Secondary: Static metadata (`src/data/staticModels.ts`)
 Release dates sourced from OpenRouter `created` Unix timestamps. Capabilities and use case data manually curated per model. Static data last verified: March 2026.
@@ -66,6 +70,8 @@ OpenRouter live data takes priority. Static metadata (release dates, capabilitie
 | Charts | Recharts | Composable, works well with React state |
 | Icons | lucide-react | Lightweight, consistent |
 | Data | OpenRouter API + static JSON | Live where available, documented fallback |
+| Tests | Vitest | Covers pricing math, model parsing, fallback merge, recommender logic |
+| CI | GitHub Actions | Lint, unit tests, build, and high-severity audit gate |
 
 ---
 
@@ -78,6 +84,10 @@ src/
 │   └── benchmarks.ts       # Real benchmark scores for 3 models
 ├── hooks/
 │   └── useModels.ts        # Fetches OpenRouter, filters by PRIORITY_IDS, injects metadata
+├── lib/
+│   ├── modelUtils.ts       # OpenRouter parsing, validation, fallback merge
+│   ├── pricing.ts          # Cost estimation and formatting helpers
+│   └── recommender.ts      # Deterministic use-case scoring
 ├── components/
 │   ├── ComparisonTable.tsx # Sortable/filterable table
 │   ├── PriceChart.tsx      # Recharts horizontal bar chart
@@ -87,6 +97,14 @@ src/
 ├── App.tsx                 # Layout, tab navigation, stats bar, dark mode toggle
 └── index.css               # Tailwind import + light theme overrides
 ```
+
+More detail:
+
+- `docs/architecture.md` — runtime flow and tradeoffs
+- `docs/data-methodology.md` — pricing, benchmark, and fallback rules
+- `docs/portfolio-review.md` — what the repo demonstrates and what should stay out of commits
+- `specs/` — lightweight feature specs for model data, cost calculation, and recommendations
+- `SECURITY.md` — API key and client-side security guidance
 
 ---
 
@@ -99,6 +117,17 @@ npm install
 npm run dev
 # Open http://localhost:5173
 ```
+
+## Quality Checks
+
+```bash
+npm run lint
+npm run test
+npm run build
+npm run audit:high
+```
+
+`npm run check` runs lint, tests, and build together. CI runs the same core checks on pushes and pull requests.
 
 ---
 

@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { RadarChart, Radar, PolarGrid, PolarAngleAxis, ResponsiveContainer, Tooltip } from 'recharts'
 import type { LLMModel } from '../data/staticModels'
 import { benchmarkData, ALL_BENCHMARKS } from '../data/benchmarks'
+import { formatContextWindow } from '../lib/pricing'
 
 const PROVIDER_COLORS: Record<string, string> = {
   OpenAI: '#10b981',
@@ -15,11 +16,6 @@ const PROVIDER_COLORS: Record<string, string> = {
 }
 
 const CHART_COLORS = ['#3b82f6', '#f97316', '#10b981']
-
-function fmtCtx(n: number) {
-  if (n >= 1_000_000) return `${n / 1_000_000}M`
-  return `${n / 1_000}K`
-}
 
 const BENCHMARK_MODEL_IDS = ['openai/gpt-4o', 'google/gemini-2.5-pro', 'anthropic/claude-opus-4.6']
 
@@ -43,7 +39,7 @@ export default function SideBySide({ models }: { models: LLMModel[] }) {
   // Radar chart data — only benchmarks where at least one model has data
   const radarData = ALL_BENCHMARKS
     .map(b => {
-      const entry: Record<string, any> = { benchmark: b.name }
+      const entry: Record<string, string | number | null> = { benchmark: b.name }
       chosen.forEach(m => {
         const scores = benchmarkData[m.id]
         const s = scores?.find(x => x.name === b.name)
@@ -110,7 +106,7 @@ export default function SideBySide({ models }: { models: LLMModel[] }) {
                   )},
                   { label: 'Input / 1M tokens', fn: (m: LLMModel) => `$${m.inputPricePer1M.toFixed(2)}` },
                   { label: 'Output / 1M tokens', fn: (m: LLMModel) => `$${m.outputPricePer1M.toFixed(2)}` },
-                  { label: 'Context Window', fn: (m: LLMModel) => fmtCtx(m.contextWindow) },
+                  { label: 'Context Window', fn: (m: LLMModel) => formatContextWindow(m.contextWindow) },
                   { label: 'Released', fn: (m: LLMModel) => m.releaseDate || '—' },
                   { label: 'Capabilities', fn: (m: LLMModel) => (
                     <div className="flex flex-wrap gap-1">
@@ -173,7 +169,7 @@ export default function SideBySide({ models }: { models: LLMModel[] }) {
                   <Tooltip
                     contentStyle={{ background: '#111827', border: '1px solid #374151', borderRadius: 8 }}
                     labelStyle={{ color: '#fff' }}
-                    formatter={(val: any) => val === null ? '—' : `${val}%`}
+                    formatter={(val: unknown) => val === null ? '—' : `${Number(val)}%`}
                   />
                   {chosen.map((m, i) => (
                     <Radar

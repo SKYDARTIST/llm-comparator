@@ -1,20 +1,9 @@
 import { useState, useMemo } from 'react'
 import { ChevronUp, ChevronDown, Search } from 'lucide-react'
 import type { LLMModel } from '../data/staticModels'
+import { formatContextWindow, formatPrice } from '../lib/pricing'
 
 type SortKey = 'name' | 'provider' | 'inputPricePer1M' | 'outputPricePer1M' | 'contextWindow'
-
-function fmtPrice(p: number) {
-  if (p === 0) return 'Free'
-  if (p < 0.1) return `$${p.toFixed(4)}`
-  return `$${p.toFixed(2)}`
-}
-
-function fmtContext(n: number) {
-  if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(0)}M`
-  if (n >= 1_000) return `${(n / 1_000).toFixed(0)}K`
-  return `${n}`
-}
 
 const PROVIDER_COLORS: Record<string, string> = {
   OpenAI: 'bg-emerald-900 text-emerald-300',
@@ -57,7 +46,7 @@ export default function ComparisonTable({ models }: { models: LLMModel[] }) {
     else { setSortKey(key); setSortAsc(true) }
   }
 
-  function SortIcon({ col }: { col: SortKey }) {
+  function renderSortIcon(col: SortKey) {
     if (sortKey !== col) return <ChevronDown className="w-3 h-3 opacity-30" />
     return sortAsc ? <ChevronUp className="w-3 h-3 text-blue-400" /> : <ChevronDown className="w-3 h-3 text-blue-400" />
   }
@@ -93,19 +82,19 @@ export default function ComparisonTable({ models }: { models: LLMModel[] }) {
           <thead className="bg-gray-800/60">
             <tr>
               <th className={th} onClick={() => handleSort('name')}>
-                <span className="flex items-center gap-1">Model <SortIcon col="name" /></span>
+                <span className="flex items-center gap-1">Model {renderSortIcon('name')}</span>
               </th>
               <th className={th} onClick={() => handleSort('provider')}>
-                <span className="flex items-center gap-1">Provider <SortIcon col="provider" /></span>
+                <span className="flex items-center gap-1">Provider {renderSortIcon('provider')}</span>
               </th>
               <th className={th} onClick={() => handleSort('inputPricePer1M')}>
-                <span className="flex items-center gap-1">Input / 1M <SortIcon col="inputPricePer1M" /></span>
+                <span className="flex items-center gap-1">Input / 1M {renderSortIcon('inputPricePer1M')}</span>
               </th>
               <th className={th} onClick={() => handleSort('outputPricePer1M')}>
-                <span className="flex items-center gap-1">Output / 1M <SortIcon col="outputPricePer1M" /></span>
+                <span className="flex items-center gap-1">Output / 1M {renderSortIcon('outputPricePer1M')}</span>
               </th>
               <th className={th} onClick={() => handleSort('contextWindow')}>
-                <span className="flex items-center gap-1">Context <SortIcon col="contextWindow" /></span>
+                <span className="flex items-center gap-1">Context {renderSortIcon('contextWindow')}</span>
               </th>
               <th className={`${th} cursor-default`}>Released</th>
               <th className={`${th} cursor-default`}>Capabilities</th>
@@ -127,12 +116,12 @@ export default function ComparisonTable({ models }: { models: LLMModel[] }) {
                 </td>
                 <td className={td}>
                   <span className={m.inputPricePer1M === minInput ? 'text-emerald-400 font-semibold' : ''}>
-                    {fmtPrice(m.inputPricePer1M)}
+                    {formatPrice(m.inputPricePer1M)}
                   </span>
                 </td>
-                <td className={td}>{fmtPrice(m.outputPricePer1M)}</td>
+                <td className={td}>{formatPrice(m.outputPricePer1M)}</td>
                 <td className={td}>
-                  <span className="font-mono text-gray-300">{fmtContext(m.contextWindow)}</span>
+                  <span className="font-mono text-gray-300">{formatContextWindow(m.contextWindow)}</span>
                 </td>
                 <td className={td}>
                   <span className="text-gray-400 text-xs">{m.releaseDate || '—'}</span>

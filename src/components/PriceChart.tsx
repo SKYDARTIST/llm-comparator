@@ -23,14 +23,26 @@ function shortName(name: string) {
     .replace(' Instruct', '')
 }
 
-const CustomTooltip = ({ active, payload, label }: any) => {
+interface ChartTooltipPayload {
+  color?: string
+  name?: string
+  value?: number
+}
+
+interface ChartTooltipProps {
+  active?: boolean
+  payload?: ChartTooltipPayload[]
+  label?: string
+}
+
+const CustomTooltip = ({ active, payload, label }: ChartTooltipProps) => {
   if (!active || !payload?.length) return null
   return (
     <div className="bg-gray-900 border border-gray-700 rounded-lg p-3 text-sm shadow-xl">
       <p className="text-white font-medium mb-1">{label}</p>
-      {payload.map((p: any) => (
+      {payload.map((p) => (
         <p key={p.name} style={{ color: p.color }}>
-          {p.name}: ${p.value.toFixed(4)} / 1M tokens
+          {p.name}: ${Number(p.value).toFixed(4)} / 1M tokens
         </p>
       ))}
     </div>
